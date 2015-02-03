@@ -21,29 +21,38 @@ public class ResultsActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_results);
 
+        // Get intent
         Intent fromQuestion = this.getIntent();
         final QuizManager qm = (QuizManager) fromQuestion.getSerializableExtra("quiz_manager");
         int choice = fromQuestion.getIntExtra("user_choice", -1);
         int correctChoice = qm.getAnswer();
 
+        // If he got it right, give that human a point!
         if (choice == correctChoice){
             qm.incrementScore();
         }
 
-        TextView question, userAns, correctAns, score, totalQs;
+        // Get views
+        TextView question, userAns, correctAns, score, totalQs, currQ, totalQs2;
         question = (TextView) findViewById(R.id.rQuestion);
         userAns = (TextView) findViewById(R.id.rChosenAns);
         correctAns = (TextView) findViewById(R.id.rCorrectAns);
         score = (TextView) findViewById(R.id.rCorrectCount);
         totalQs = (TextView) findViewById(R.id.rTotalCount);
+        currQ = (TextView) findViewById(R.id.rQuestionsLeft);
+        totalQs2 = (TextView) findViewById(R.id.rrTotalCount);
 
+        // Edit views
         question.setText(qm.getQuestion());
         userAns.setText(qm.getChoices()[choice]);
         correctAns.setText(qm.getChoices()[correctChoice]);
         score.setText(qm.getScore() + "");
         totalQs.setText(qm.getTotalQuestions() + "");
+        currQ.setText((qm.getQuestionNumber() + 1) + "");
+        totalQs2.setText(qm.getTotalQuestions() + "");
 
         Button nextBtn = (Button) findViewById(R.id.rNextQuestion);
+
         if(!qm.hasNextQuestion()){
             nextBtn.setText("Finish");
         }
@@ -53,12 +62,16 @@ public class ResultsActivity extends ActionBarActivity {
                 if(qm.hasNextQuestion()) {
                     Log.d(TAG, "Next question!");
                     qm.nextQuestion();
-                    Intent questionIntent = new Intent(ResultsActivity.this, QuestionActivity.class);
+                    Intent questionIntent =
+                            new Intent(ResultsActivity.this, QuestionActivity.class);
                     questionIntent.putExtra("quiz_manager", qm);
                     startActivity(questionIntent);
                 } else {
                     Log.d(TAG, "User finished the quiz.");
-                    startActivity(new Intent(ResultsActivity.this, MainActivity.class));
+                    Intent finalResultIntent =
+                            new Intent(ResultsActivity.this, FinalResultsActivity.class);
+                    finalResultIntent.putExtra("quiz_manager", qm);
+                    startActivity(finalResultIntent);
                 }
                 finish();
             }

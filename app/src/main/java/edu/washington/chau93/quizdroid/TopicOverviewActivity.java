@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 
 import edu.washington.chau93.quizdroid.managers.QuizManager;
@@ -23,38 +25,27 @@ public class TopicOverviewActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_topic_overview);
 
+        // Get intent and grab content
         Intent fromMain = this.getIntent();
         String topic = fromMain.getStringExtra("topic");
+        final QuizManager qm = (QuizManager) fromMain.getSerializableExtra("quiz_manager");
 
+        // Get views
         TextView ovTitle = (TextView) findViewById(R.id.ovTopic);
-        ovTitle.setText(topic);
-
+        TextView ovDescription = (TextView) findViewById(R.id.ovDescription);
+        TextView ovDetails = (TextView) findViewById(R.id.ovDetails);
         Button begin = (Button) findViewById(R.id.ovQuizStart);
+
+        // Edit views
+        ovTitle.setText(topic);
+        ovDescription.setText(qm.getDescription());
+        ovDetails.setText("There is a total of " + qm.getTotalQuestions() + " " +
+                ((qm.getTotalQuestions() == 1)? "question" : "questions") + ".");
+
+
         begin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Once you choose begin I would do another GET request for the questions, choices
-                // and the answers. Sort them out and put them into the QuizManager.
-                ArrayList<String> questions = new ArrayList<String>();
-                ArrayList<String[]> choices = new ArrayList<String[]>();
-                ArrayList<Integer> answers = new ArrayList<Integer>();
-
-                // Some "hard coded" questions/answers
-                for(int i = 0; i < 4; i++){
-                    questions.add("This is a question? Here's an index: " + i);
-                    choices.add(new String[4]);
-                    String[] ans = choices.get(i);
-                    for(int j = 0; j < 4; j++){
-                        ans[j] = "Answer number: " + (j+1); // Some choices for the quiz
-                    }
-
-                    answers.add(i); // Each answer to the question is the index of the question.
-                }
-
-
-
-                QuizManager qm = new QuizManager(questions, choices, answers);
-
                 Intent quizIntent = new Intent(TopicOverviewActivity.this, QuestionActivity.class);
                 quizIntent.putExtra("quiz_manager", qm);
                 Log.d(TAG, "Begin button clicked.");

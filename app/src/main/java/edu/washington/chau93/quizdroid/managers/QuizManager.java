@@ -14,19 +14,20 @@ public class QuizManager implements Serializable {
     private int questionNumber;
     private int totalQuestions;
     private int score;
+    private String description;
     private ArrayList<String> questions;
     private ArrayList<String[]> choices;
     private ArrayList<Integer> answers;
 
-    public QuizManager(ArrayList<String> questions, ArrayList<String[]> answers,
+    public QuizManager(String description, ArrayList<String> questions, ArrayList<String[]> answers,
                        ArrayList<Integer> correctAnswer){
+        this.description = description;
         this.questions = questions;
         this.choices = answers;
         this.answers = correctAnswer;
         this.totalQuestions = questions.size();
         this.questionNumber = 0;
         score = 0;
-        Log.d(TAG, "Questions: " + questions.toString() + ". Size: " + questions.size());
     }
 
     // Get the question at the current question number
@@ -77,4 +78,10 @@ public class QuizManager implements Serializable {
     public int getTotalQuestions() {
         return totalQuestions;
     }
+
+    // Get Description
+    public String getDescription() { return description; }
+
+    // Set Description
+    public void setDescription(String description) { this.description = description; }
 }

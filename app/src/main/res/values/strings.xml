@@ -7,5 +7,6 @@
     <string name="title_activity_topic_overview">TopicOverviewActivity</string>
     <string name="title_activity_question">QuestionActivity</string>
     <string name="title_activity_results">ResultsActivity</string>
+    <string name="title_activity_final_results">FinalResultsActivity</string>
 
 </resources>
