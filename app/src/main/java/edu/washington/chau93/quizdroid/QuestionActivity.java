@@ -22,7 +22,7 @@ public class QuestionActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_question);
+        setContentView(R.layout.fragment_question);
 
         final Intent fromOV = this.getIntent();
         QuizManager qm = null;
@@ -72,7 +72,6 @@ public class QuestionActivity extends ActionBarActivity {
                     startActivity(resultsIntent);
                 }
             });
-
         }
 
     }

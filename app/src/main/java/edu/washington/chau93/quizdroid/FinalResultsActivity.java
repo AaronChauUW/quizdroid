@@ -17,7 +17,7 @@ public class FinalResultsActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_final_results);
+        setContentView(R.layout.fragment_final_results);
 
         // Get intent
         Intent fromResults = this.getIntent();

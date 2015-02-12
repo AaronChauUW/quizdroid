@@ -10,10 +10,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
-import java.util.ArrayList;
-
 import edu.washington.chau93.quizdroid.managers.QuizManager;
 
 
@@ -23,7 +19,7 @@ public class TopicOverviewActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_topic_overview);
+        setContentView(R.layout.fragment_topic_overview);
 
         // Get intent and grab content
         Intent fromMain = this.getIntent();

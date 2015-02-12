@@ -1,14 +1,20 @@
 package edu.washington.chau93.quizdroid;
 
 import android.content.Intent;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
@@ -18,7 +24,7 @@ import edu.washington.chau93.quizdroid.managers.QuizManager;
 public class MainActivity extends ActionBarActivity {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -33,7 +39,6 @@ public class MainActivity extends ActionBarActivity {
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent overviewIntent = new Intent(MainActivity.this, TopicOverviewActivity.class);
                 String topic = (String) lv.getItemAtPosition(position);
                 // Ideally I would do a pull request on the topic to get some information
                 // such as the description and how many questions there are and put them
@@ -65,17 +70,13 @@ public class MainActivity extends ActionBarActivity {
                 "cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non\n" +
                 "proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
-
-
-
                 QuizManager qm = new QuizManager(description, questions, choices, answers);
 
-                overviewIntent.putExtra("topic", topic);
-                overviewIntent.putExtra("quiz_manager", qm);
+                Intent quizIntent = new Intent(MainActivity.this, QuizActivity.class);
+                quizIntent.putExtra("quiz_manager", qm);
+                quizIntent.putExtra("topic", topic);
 
-                if (overviewIntent.resolveActivity(getPackageManager()) != null)
-                    startActivity(overviewIntent);
-
+                startActivity(quizIntent);
 
             }
         });
