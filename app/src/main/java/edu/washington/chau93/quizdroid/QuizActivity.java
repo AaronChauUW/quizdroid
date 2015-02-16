@@ -32,8 +32,6 @@ public class QuizActivity extends ActionBarActivity {
 
             Fragment toFragment = new TopicOverViewFragment();
             toFragment.setArguments(fromMain.getExtras());
-            // Need to find a place to keep track of question number.
-            // Maybe just keep passing it in and out of fragments?
 
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, toFragment)
@@ -101,12 +99,6 @@ public class QuizActivity extends ActionBarActivity {
                 public void onClick(View v) {
                     Log.d(TAG, "Begin button clicked.");
 
-//                    Fragment qFragment = new QuestionFragment();
-//
-//                    Bundle b = new Bundle();
-//                    b.putSerializable("quiz_manager", qm);
-//                    qFragment.setArguments(b);
-
                     getFragmentManager().beginTransaction()
                             .setCustomAnimations(
                                     android.R.anim.slide_in_left, android.R.anim.slide_out_right
@@ -172,7 +164,6 @@ public class QuizActivity extends ActionBarActivity {
                     Fragment rFragment = new ResultsFragment();
 
                     Bundle b = new Bundle();
-//                    b.putSerializable("quiz_manager", qm);
                     b.putInt("user_choice", choice);
 
                     rFragment.setArguments(b);
@@ -263,10 +254,6 @@ public class QuizActivity extends ActionBarActivity {
                         nextFragment = new FinalResultFragment();
                     }
 
-
-//                    b.putSerializable("quiz_manager", qm);
-//                    nextFragment.setArguments(b);
-
                     getFragmentManager().beginTransaction()
                             .setCustomAnimations(
                                     android.R.anim.slide_in_left, android.R.anim.slide_out_right
@@ -292,8 +279,6 @@ public class QuizActivity extends ActionBarActivity {
 
             View rootView = inflater.inflate(R.layout.fragment_final_results, container, false);
 
-            // Get intent
-//            Bundle args = getArguments();
             QuizManager qm = QuizApp.getQuizManager();
 
             // Get views

@@ -26,6 +26,16 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initQuizApp();
+
+        updateView();
+    }
+
+    protected void initQuizApp(){
+        QuizApp.initQuizApp();
+    }
+
+    private void updateView(){
         TopicRepository topicRepo = QuizApp.getTopicRepo();
 
         // Create list of topics with the title and short description.
@@ -37,14 +47,6 @@ public class MainActivity extends ActionBarActivity {
             data.add(datum);
         }
 
-        // Use simple adapter to put the topic and short description into
-        // simple list item 2 layout.
-        SimpleAdapter quizChoiceAdapter2 = new SimpleAdapter(this, data,
-                R.layout.custom_list_item,
-                new String[] {"topic", "shortD", "image"},
-                new int[] {R.id.customListTopic, R.id.customListShortD, R.id.customListImageView}
-        );
-
         // Custom adapter
         ArrayList<Topic> totspic = new ArrayList<Topic>();
         totspic.addAll(topicRepo.getTopics().values());
@@ -54,17 +56,12 @@ public class MainActivity extends ActionBarActivity {
                 getResources()
         );
 
-
-
-
         final ListView lv = (ListView) findViewById(R.id.quizChoice);
-//        lv.setAdapter(quizChoiceAdapter2);
         lv.setAdapter(customAdapter);
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                String topic = (String) ((HashMap) lv.getItemAtPosition(position)).get("topic");
                 String topic = (String) ((Topic) lv.getItemAtPosition(position)).getTitle();
 
                 Intent quizIntent = new Intent(MainActivity.this, QuizActivity.class);
@@ -74,7 +71,6 @@ public class MainActivity extends ActionBarActivity {
 
             }
         });
-
     }
 
 

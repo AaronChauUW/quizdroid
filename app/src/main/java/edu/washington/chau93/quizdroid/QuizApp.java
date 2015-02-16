@@ -10,13 +10,21 @@ import edu.washington.chau93.quizdroid.repositories.TopicRepository;
  * Created by Aaron Chau on 2/14/2015.
  */
 public class QuizApp extends Application {
-    private static QuizApp myApp = new QuizApp();
+    private static QuizApp myApp;
     private static TopicRepository topicRepo = new TopicRepository();
     private static QuizManager quizManager;
 
-//    I'm really confused. Whenever I try to make this private I get a IllegalAccessException.
-//    java.lang.IllegalAccessException: access to constructor not allowed
-//    private QuizApp(){}
+    private QuizApp(){}
+
+    public static void initQuizApp(){
+        if (myApp == null){
+            myApp = new QuizApp();
+        }
+    }
+
+    public static QuizApp getQuizApp(){
+        return myApp;
+    }
 
     public static TopicRepository getTopicRepo() {
         return topicRepo;
