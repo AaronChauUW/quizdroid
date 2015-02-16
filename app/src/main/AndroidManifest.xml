@@ -2,11 +2,14 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.washington.chau93.quizdroid" >
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme"
+        android:name=".QuizApp">
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name" >
@@ -17,25 +20,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".TopicOverviewActivity"
-            android:label="@string/title_activity_topic_overview" >
-        </activity>
-        <activity
-            android:name=".QuestionActivity"
-            android:label="@string/title_activity_question" >
-        </activity>
-        <activity
-            android:name=".ResultsActivity"
-            android:label="@string/title_activity_results" >
-        </activity>
-        <activity
-            android:name=".FinalResultsActivity"
-            android:label="@string/title_activity_final_results" >
-        </activity>
-        <activity
             android:name=".QuizActivity"
             android:label="@string/title_activity_quiz" >
         </activity>
     </application>
-
 </manifest>

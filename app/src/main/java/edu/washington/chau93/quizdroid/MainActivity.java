@@ -1,24 +1,22 @@
 package edu.washington.chau93.quizdroid;
 
 import android.content.Intent;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
+import android.widget.SimpleAdapter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import edu.washington.chau93.quizdroid.managers.QuizManager;
+import edu.washington.chau93.quizdroid.domains.Topic;
+import edu.washington.chau93.quizdroid.repositories.TopicRepository;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -28,52 +26,48 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        String[] quizChoices = {"Math", "Physics", "Marvel Super Heroes"};
+        TopicRepository topicRepo = QuizApp.getTopicRepo();
 
-        ArrayAdapter<String> quizChoiceAdapter =
-                new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, quizChoices);
+        // Create list of topics with the title and short description.
+        List<Map<String, String>> data = new ArrayList<Map<String, String>>();
+        for(Topic t : topicRepo.getTopics().values()){
+            Map<String, String> datum = new HashMap<String, String>(2);
+            datum.put("topic", t.getTitle());
+            datum.put("shortD", t.getShortDescription());
+            data.add(datum);
+        }
+
+        // Use simple adapter to put the topic and short description into
+        // simple list item 2 layout.
+        SimpleAdapter quizChoiceAdapter2 = new SimpleAdapter(this, data,
+                R.layout.custom_list_item,
+                new String[] {"topic", "shortD", "image"},
+                new int[] {R.id.customListTopic, R.id.customListShortD, R.id.customListImageView}
+        );
+
+        // Custom adapter
+        ArrayList<Topic> totspic = new ArrayList<Topic>();
+        totspic.addAll(topicRepo.getTopics().values());
+        CustomAdapter customAdapter = new CustomAdapter(
+                this,
+                totspic,
+                getResources()
+        );
+
+
+
 
         final ListView lv = (ListView) findViewById(R.id.quizChoice);
-        lv.setAdapter(quizChoiceAdapter);
+//        lv.setAdapter(quizChoiceAdapter2);
+        lv.setAdapter(customAdapter);
 
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String topic = (String) lv.getItemAtPosition(position);
-                // Ideally I would do a pull request on the topic to get some information
-                // such as the description and how many questions there are and put them
-                // the intent as well.
-
-                // Once you choose begin I would do another GET request for the questions, choices
-                // and the answers. Sort them out and put them into the QuizManager.
-                ArrayList<String> questions = new ArrayList<String>();
-                ArrayList<String[]> choices = new ArrayList<String[]>();
-                ArrayList<Integer> answers = new ArrayList<Integer>();
-
-                // Some "hard coded" questions/answers
-                for(int i = 0; i < 4; i++){
-                    questions.add("This is a question? Here's an index: " + i);
-                    choices.add(new String[4]);
-                    String[] ans = choices.get(i);
-                    for(int j = 0; j < 4; j++){
-                        ans[j] = "Answer number: " + (j+1); // Some choices for the quiz
-                    }
-
-                    answers.add(i); // Each answer to the question is the index of the question.
-                }
-
-                String description =
-                "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod\n" +
-                "tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,\n" +
-                "quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo\n" +
-                "consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse\n" +
-                "cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non\n" +
-                "proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
-
-                QuizManager qm = new QuizManager(description, questions, choices, answers);
+//                String topic = (String) ((HashMap) lv.getItemAtPosition(position)).get("topic");
+                String topic = (String) ((Topic) lv.getItemAtPosition(position)).getTitle();
 
                 Intent quizIntent = new Intent(MainActivity.this, QuizActivity.class);
-                quizIntent.putExtra("quiz_manager", qm);
                 quizIntent.putExtra("topic", topic);
 
                 startActivity(quizIntent);

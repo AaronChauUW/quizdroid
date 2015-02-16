@@ -15,6 +15,8 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import java.util.List;
+
 import edu.washington.chau93.quizdroid.managers.QuizManager;
 
 
@@ -30,7 +32,8 @@ public class QuizActivity extends ActionBarActivity {
 
             Fragment toFragment = new TopicOverViewFragment();
             toFragment.setArguments(fromMain.getExtras());
-
+            // Need to find a place to keep track of question number.
+            // Maybe just keep passing it in and out of fragments?
 
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, toFragment)
@@ -77,7 +80,7 @@ public class QuizActivity extends ActionBarActivity {
             Bundle args = getArguments();
 
             String topic = args.getString("topic");
-            final QuizManager qm = (QuizManager) args.getSerializable("quiz_manager");
+            final QuizManager qm = QuizApp.createNewQuizManager(topic);
 
 
             // Get views
@@ -88,7 +91,7 @@ public class QuizActivity extends ActionBarActivity {
 
             // Edit views
             ovTitle.setText(topic);
-            ovDescription.setText(qm.getDescription());
+            ovDescription.setText(qm.getLongDescription());
             ovDetails.setText("There is a total of " + qm.getTotalQuestions() + " " +
                     ((qm.getTotalQuestions() == 1)? "question" : "questions") + ".");
 
@@ -98,14 +101,17 @@ public class QuizActivity extends ActionBarActivity {
                 public void onClick(View v) {
                     Log.d(TAG, "Begin button clicked.");
 
-                    Fragment qFragment = new QuestionFragment();
-
-                    Bundle b = new Bundle();
-                    b.putSerializable("quiz_manager", qm);
-                    qFragment.setArguments(b);
+//                    Fragment qFragment = new QuestionFragment();
+//
+//                    Bundle b = new Bundle();
+//                    b.putSerializable("quiz_manager", qm);
+//                    qFragment.setArguments(b);
 
                     getFragmentManager().beginTransaction()
-                            .replace(R.id.container, qFragment)
+                            .setCustomAnimations(
+                                    android.R.anim.slide_in_left, android.R.anim.slide_out_right
+                            )
+                            .replace(R.id.container, new QuestionFragment())
                             .commit();
                 }
             });
@@ -128,9 +134,7 @@ public class QuizActivity extends ActionBarActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_question, container, false);
 
-            Bundle args = getArguments();
-
-            final QuizManager qm = (QuizManager) args.getSerializable("quiz_manager");
+            final QuizManager qm = QuizApp.getQuizManager();
 
             choice = (savedInstanceState == null)? -1 : savedInstanceState.getInt("user_choice");
             TextView questionTitle = (TextView) rootView.findViewById(R.id.qQuestion);
@@ -139,7 +143,7 @@ public class QuizActivity extends ActionBarActivity {
             submit.setEnabled(choice != -1);
 
             String question = qm.getQuestion();
-            String[] answers = qm.getChoices();
+            List<String> answers = qm.getChoices();
 
             questionTitle.setText(question);
 
@@ -168,12 +172,15 @@ public class QuizActivity extends ActionBarActivity {
                     Fragment rFragment = new ResultsFragment();
 
                     Bundle b = new Bundle();
-                    b.putSerializable("quiz_manager", qm);
+//                    b.putSerializable("quiz_manager", qm);
                     b.putInt("user_choice", choice);
 
                     rFragment.setArguments(b);
 
                     getFragmentManager().beginTransaction()
+                            .setCustomAnimations(
+                                    android.R.anim.slide_in_left, android.R.anim.slide_out_right
+                            )
                             .replace(R.id.container, rFragment)
                             .commit();
                 }
@@ -203,7 +210,7 @@ public class QuizActivity extends ActionBarActivity {
 
             Bundle args = getArguments();
 
-            final QuizManager qm = (QuizManager) args.getSerializable("quiz_manager");
+            final QuizManager qm = QuizApp.getQuizManager();
             int choice = args.getInt("user_choice", -1);
             int correctChoice = qm.getAnswer();
 
@@ -224,14 +231,17 @@ public class QuizActivity extends ActionBarActivity {
 
             // Edit views
             question.setText(qm.getQuestion());
-            userAns.setText(qm.getChoices()[choice]);
-            correctAns.setText(qm.getChoices()[correctChoice]);
+            userAns.setText(qm.getChoices().get(choice));
+            correctAns.setText(qm.getChoices().get(correctChoice));
             score.setText(qm.getScore() + "");
             totalQs.setText(qm.getTotalQuestions() + "");
             currQ.setText((qm.getQuestionNumber() + 1) + "");
             totalQs2.setText(qm.getTotalQuestions() + "");
 
             Button nextBtn = (Button) rootView.findViewById(R.id.rNextQuestion);
+
+            // Jump to next question
+            qm.nextQuestion();
 
             if(!qm.hasNextQuestion()){
                 nextBtn.setText("Finish");
@@ -246,7 +256,6 @@ public class QuizActivity extends ActionBarActivity {
                     if(qm.hasNextQuestion()) {
                         Log.d(TAG, "Next question!");
                         // Show next question
-                        qm.nextQuestion();
                         nextFragment = new QuestionFragment();
                     } else {
                         Log.d(TAG, "User finished the quiz.");
@@ -255,10 +264,13 @@ public class QuizActivity extends ActionBarActivity {
                     }
 
 
-                    b.putSerializable("quiz_manager", qm);
-                    nextFragment.setArguments(b);
+//                    b.putSerializable("quiz_manager", qm);
+//                    nextFragment.setArguments(b);
 
                     getFragmentManager().beginTransaction()
+                            .setCustomAnimations(
+                                    android.R.anim.slide_in_left, android.R.anim.slide_out_right
+                            )
                             .replace(R.id.container, nextFragment)
                             .commit();
                 }
@@ -281,8 +293,8 @@ public class QuizActivity extends ActionBarActivity {
             View rootView = inflater.inflate(R.layout.fragment_final_results, container, false);
 
             // Get intent
-            Bundle args = getArguments();
-            QuizManager qm = (QuizManager) args.getSerializable("quiz_manager");
+//            Bundle args = getArguments();
+            QuizManager qm = QuizApp.getQuizManager();
 
             // Get views
             TextView frScore = (TextView) rootView.findViewById(R.id.frScore);
