@@ -1,6 +1,7 @@
 package edu.washington.chau93.quizdroid.domains;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Queue;
 
 /**
@@ -8,19 +9,19 @@ import java.util.Queue;
  */
 public class Topic implements Serializable {
     private String title, longDescription, shortDescription, image;
-    private Queue<Question> questions;
+    private List<Question> questions2;
 
     public Topic(String title, String longDescription, String shortDescription,
-                 Queue<Question> questions){
+                 List<Question> questions){
         this(title, longDescription, shortDescription, questions, "default_icon");
     }
 
     public Topic(String title, String longDescription, String shortDescription,
-                 Queue<Question> questions, String image){
+                 List<Question> questions, String image){
         this.title = title;
         this.longDescription = longDescription;
         this.shortDescription = shortDescription;
-        this.questions = questions;
+        this.questions2 = questions;
         this.image = image;
     }
 
@@ -40,7 +41,7 @@ public class Topic implements Serializable {
         return shortDescription;
     }
 
-    public Queue<Question> getQuestions() {
-        return questions;
+    public List<Question> getQuestions() {
+        return questions2;
     }
 }

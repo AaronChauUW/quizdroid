@@ -70,7 +70,7 @@ public class TopicRepository {
 
     private String longDescription;
     private String shortDescription;
-    private Queue<Question> questions;
+    private List<Question> questions;
 
     private void makeLongD(){
         longDescription =

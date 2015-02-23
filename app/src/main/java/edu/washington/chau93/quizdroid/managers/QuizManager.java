@@ -3,11 +3,7 @@ package edu.washington.chau93.quizdroid.managers;
 import android.util.Log;
 
 import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 
 import edu.washington.chau93.quizdroid.QuizApp;
 import edu.washington.chau93.quizdroid.domains.Question;
@@ -19,40 +15,37 @@ import edu.washington.chau93.quizdroid.domains.Topic;
 public class QuizManager implements Serializable {
     private final String TAG = "Quiz Manager";
 
-    private int totalQuestions;
     private int score;
-    private String topic;
-    private Queue<Question> questions;
+    private List<Question> questions;
+    private int index;
     private Topic topicObj;
 
     public QuizManager(String topic){
-        this.topic = topic;
+        this.index = 0;
         this.topicObj = QuizApp.getTopicRepo().getTopic(topic);
-        this.questions = new LinkedList<Question>();
-        questions.addAll(topicObj.getQuestions());
-        this.totalQuestions = questions.size();
+        this.questions = topicObj.getQuestions();
         this.score = 0;
     }
 
     // Get the question at the current question number
     public String getQuestion(){
-        return questions.peek().getQuestion();
+        return questions.get(index).getQuestion();
     }
 
     // Get the choices at the current question number
     public List<String> getChoices(){
-        return questions.peek().getChoices();
+        return questions.get(index).getChoices();
     }
 
     // Get the answer to the current question.
     public int getAnswer(){
-        return questions.peek().getAnswer();
+        return questions.get(index).getAnswer();
     }
 
     // Increment question number count
     public void nextQuestion(){
         if(hasNextQuestion()) {
-            questions.remove();
+            index++;
         } else {
             Log.d(TAG, "There are no more questions. Finish the quiz already!");
         }
@@ -70,17 +63,17 @@ public class QuizManager implements Serializable {
 
     // Check if there are still questions to ask
     public boolean hasNextQuestion(){
-        return questions.size() > 0;
+        return index < questions.size();
     }
 
     // Getter for question index
     public int getQuestionNumber() {
-        return totalQuestions - questions.size();
+        return index;
     }
 
     // Get question count
     public int getTotalQuestions() {
-        return totalQuestions;
+        return questions.size();
     }
 
     // Get Long Description

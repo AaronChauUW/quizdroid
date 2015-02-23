@@ -1,14 +1,20 @@
 package edu.washington.chau93.quizdroid;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.SimpleAdapter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,11 +26,19 @@ import edu.washington.chau93.quizdroid.repositories.TopicRepository;
 
 
 public class MainActivity extends ActionBarActivity {
+    private final String TAG = "Quiz App";
+    private AlarmManager alarmMrg;
+    private PendingIntent pendingIntent;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "on create");
         setContentView(R.layout.activity_main);
+
+        alarmMrg = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+
+        startScheduledUpdate();
 
         initQuizApp();
 
@@ -48,11 +62,11 @@ public class MainActivity extends ActionBarActivity {
         }
 
         // Custom adapter
-        ArrayList<Topic> totspic = new ArrayList<Topic>();
-        totspic.addAll(topicRepo.getTopics().values());
+        ArrayList<Topic> topics = new ArrayList<Topic>();
+        topics.addAll(topicRepo.getTopics().values());
         CustomAdapter customAdapter = new CustomAdapter(
                 this,
-                totspic,
+                topics,
                 getResources()
         );
 
@@ -74,6 +88,26 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
+    private void startScheduledUpdate(){
+        Log.d(TAG, "Scheduling updates.");
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        String url = sharedPref.getString("quiz_url", String.valueOf(R.string.default_quiz_url));
+        int interval = Integer.parseInt(sharedPref.getString("download_interval", "30"));
+        long time = interval * 60 * 1000;
+
+        Intent intent = new Intent(this, Updater.class);
+        intent.putExtra("quiz_url", url);
+        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+
+        alarmMrg.setInexactRepeating(
+                AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                0, time,
+                pendingIntent
+        );
+    }
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -90,9 +124,19 @@ public class MainActivity extends ActionBarActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // Cnacel the update checks if user closes app.
+        if(alarmMrg != null) alarmMrg.cancel(pendingIntent);
+        if(pendingIntent != null) pendingIntent.cancel();
     }
 }

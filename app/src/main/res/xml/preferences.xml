@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Download Settings"
+        android:summary="Enter settings for the download settings.">
+
+        <!--<CheckBoxPreference-->
+            <!--android:title="Check For Updates"-->
+            <!--android:key="check_updates"-->
+            <!--android:summary="Check if you want Quiz App to check for quiz updates."-->
+            <!--android:defaultValue="true"/>-->
+
+        <EditTextPreference
+            android:title="Quiz URL"
+            android:key="quiz_url"
+            android:summary="Please enter the URL to download the quiz."
+            android:defaultValue="http://tednewardsandbox.site44.com/questions.json"/>
+
+        <EditTextPreference
+            android:title="Download Interval"
+            android:key="download_interval"
+            android:summary="Please enter how often you would like to check for updates in minutes."
+            android:numeric="integer"
+            android:defaultValue="30"
+            android:hint="Please enter in minutes."/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>
