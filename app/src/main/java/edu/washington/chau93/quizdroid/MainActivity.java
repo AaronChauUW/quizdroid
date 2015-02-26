@@ -1,11 +1,16 @@
 package edu.washington.chau93.quizdroid;
 
 import android.app.AlarmManager;
+import android.app.DownloadManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.preference.PreferenceFragment;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -16,6 +21,16 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,19 +39,18 @@ import java.util.Map;
 import edu.washington.chau93.quizdroid.domains.Topic;
 import edu.washington.chau93.quizdroid.repositories.TopicRepository;
 
+import static android.app.DownloadManager.ACTION_DOWNLOAD_COMPLETE;
+import static android.app.DownloadManager.EXTRA_DOWNLOAD_ID;
+
 
 public class MainActivity extends ActionBarActivity {
     private final String TAG = "Quiz App";
-    private AlarmManager alarmMrg;
-    private PendingIntent pendingIntent;
+    private String fileDir;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "on create");
         setContentView(R.layout.activity_main);
-
-        alarmMrg = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
         startScheduledUpdate();
 
@@ -47,6 +61,30 @@ public class MainActivity extends ActionBarActivity {
 
     protected void initQuizApp(){
         QuizApp.initQuizApp();
+        String json = null;
+
+        try {
+//            File dir = Environment.getExternalStorageDirectory().getAbsolutePath();
+            File jsonFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), "questions.json");
+            Log.d(TAG, jsonFile.toString());
+            FileInputStream stream = new FileInputStream(jsonFile);
+            try {
+                FileChannel fc = stream.getChannel();
+                MappedByteBuffer bb = fc.map(FileChannel.MapMode.READ_ONLY, 0, fc.size());
+                /* Instead of using default, pass in a decoder. */
+                json = Charset.defaultCharset().decode(bb).toString();
+            }
+            finally {
+                stream.close();
+            }
+        } catch (Exception e) {e.printStackTrace();}
+        if(json != null) {
+            try {
+                QuizApp.createTopicRepo(new JSONObject(json));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void updateView(){
@@ -87,6 +125,9 @@ public class MainActivity extends ActionBarActivity {
         });
     }
 
+    private BroadcastReceiver receiver;
+    private long dlReference;
+    private DownloadManager dm;
 
     private void startScheduledUpdate(){
         Log.d(TAG, "Scheduling updates.");
@@ -96,14 +137,45 @@ public class MainActivity extends ActionBarActivity {
         int interval = Integer.parseInt(sharedPref.getString("download_interval", "30"));
         long time = interval * 60 * 1000;
 
-        Intent intent = new Intent(this, Updater.class);
-        intent.putExtra("quiz_url", url);
-        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        String dirType = Environment.getExternalStorageDirectory().getAbsolutePath();
+        Log.d(TAG, "Download directory: " + dirType);
+        request.setDestinationInExternalFilesDir(
+                this,
+                dirType,
+                "questions.json"
+        );
+        dlReference = dm.enqueue(request);
 
-        alarmMrg.setInexactRepeating(
-                AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                0, time,
-                pendingIntent
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                DownloadManager dm = (DownloadManager) context.getSystemService(DOWNLOAD_SERVICE);
+                String action = intent.getAction();
+                if(ACTION_DOWNLOAD_COMPLETE.equals(action)){
+                    Log.d(TAG, "Download is done");
+                    long downloadId = intent.getLongExtra(EXTRA_DOWNLOAD_ID, 0);
+                    DownloadManager.Query query = new DownloadManager.Query();
+                    query.setFilterById(dlReference);
+                    Cursor c = dm.query(query);
+                    if(c.moveToFirst()){
+                        int columnIndex = c.getColumnIndex(DownloadManager.COLUMN_STATUS);
+                        if(DownloadManager.STATUS_SUCCESSFUL == c.getInt(columnIndex)){
+                            Log.d(TAG, "Status successful... whatever that means.");
+                            String uriString = c
+                                    .getString(c
+                                            .getColumnIndex(DownloadManager.COLUMN_LOCAL_URI));
+                            Log.d(TAG, "uriString: " + uriString);
+                            fileDir = uriString;
+                        }
+                    }
+                }
+            }
+        };
+        registerReceiver(
+                receiver,
+                new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
         );
     }
 
@@ -135,8 +207,9 @@ public class MainActivity extends ActionBarActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        // Cnacel the update checks if user closes app.
-        if(alarmMrg != null) alarmMrg.cancel(pendingIntent);
-        if(pendingIntent != null) pendingIntent.cancel();
+        // Cancel the update checks if user closes app.
+        unregisterReceiver(receiver);
+
+        Log.d(TAG, "Good bye!");
     }
 }

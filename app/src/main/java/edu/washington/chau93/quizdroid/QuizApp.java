@@ -3,6 +3,10 @@ package edu.washington.chau93.quizdroid;
 import android.app.Application;
 import android.util.Log;
 
+import org.json.JSONObject;
+
+import java.io.InputStream;
+
 import edu.washington.chau93.quizdroid.managers.QuizManager;
 import edu.washington.chau93.quizdroid.repositories.TopicRepository;
 
@@ -11,7 +15,7 @@ import edu.washington.chau93.quizdroid.repositories.TopicRepository;
  */
 public class QuizApp extends Application {
     private static QuizApp myApp;
-    private static TopicRepository topicRepo = new TopicRepository();
+    private static TopicRepository topicRepo;
     private static QuizManager quizManager;
 
     private QuizApp(){}
@@ -20,6 +24,10 @@ public class QuizApp extends Application {
         if (myApp == null){
             myApp = new QuizApp();
         }
+    }
+
+    public static void createTopicRepo(JSONObject jsonObject){
+        topicRepo = new TopicRepository(jsonObject);
     }
 
     public static QuizApp getQuizApp(){

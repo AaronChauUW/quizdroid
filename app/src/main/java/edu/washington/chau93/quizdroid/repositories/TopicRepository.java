@@ -1,10 +1,13 @@
 package edu.washington.chau93.quizdroid.repositories;
 
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -17,14 +20,19 @@ import edu.washington.chau93.quizdroid.domains.Topic;
 public class TopicRepository {
     private Map<String, Topic> topics;
 
-    public TopicRepository(){
+    public TopicRepository(JSONObject jsonObject){
         topics = new TreeMap<String, Topic>();
 
         // Temp fake questions and choices
-        makeFakeQuestions();
+        // makeFakeQuestions();
+
+        readJSONData(jsonObject);
 
         // Make topics
         createTopics();
+    }
+
+    private void readJSONData(JSONObject jsonObject) {
     }
 
     // Create the topics for the quiz
