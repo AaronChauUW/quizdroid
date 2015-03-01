@@ -1,5 +1,11 @@
 package edu.washington.chau93.quizdroid.repositories;
 
+import android.util.Log;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,7 +21,9 @@ import edu.washington.chau93.quizdroid.domains.Topic;
  * Created by Aaron Chau on 2/14/2015.
  */
 public class TopicRepository {
+    private final String TAG = "TopicRepository";
     private Map<String, Topic> topics;
+
 
     public TopicRepository(){
         topics = new TreeMap<String, Topic>();
@@ -24,17 +32,50 @@ public class TopicRepository {
         makeFakeQuestions();
 
         // Make topics
-        createTopics();
+        createTopics("Mathematics", longDescription, shortDescription, questions, "mathematics");
+        createTopics("Marvel Super Heroes", longDescription, shortDescription, questions, null);
+        createTopics("Science!", longDescription, shortDescription, questions, "science");
+    }
+
+    public TopicRepository(JSONArray jsonArray) {
+        topics = new TreeMap<String, Topic>();
+        try {
+            for(int i = 0; i < jsonArray.length(); i++){
+                JSONObject joTopic = jsonArray.getJSONObject(i);
+                String title = joTopic.getString("title");
+                String desc = joTopic.getString("desc");
+                JSONArray questions = joTopic.getJSONArray("questions");
+                List<Question> quizQuestions = new ArrayList<Question>();
+                for(int j = 0; j < questions.length(); j++){
+                    JSONObject joQuestion = questions.getJSONObject(j);
+                    String text = joQuestion.getString("text");
+                    int correctChoice = joQuestion.getInt("answer") - 1;
+                    JSONArray joPossibleChoices = joQuestion.getJSONArray("answers");
+                    List<String> possibleChoices = new ArrayList<String>();
+                    for(int k = 0; k < joPossibleChoices.length(); k++){
+                        possibleChoices.add(joPossibleChoices.getString(k));
+                    }
+                    quizQuestions.add(new Question(text, possibleChoices, correctChoice));
+                }
+                createTopics(
+                        title, desc, desc, quizQuestions,
+                        title.replaceAll("[^\\w\\s]","").toLowerCase()
+                );
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
     }
 
     // Create the topics for the quiz
-    private void createTopics(){
-        topics.put("Math",
-                new Topic("Math", longDescription, shortDescription, questions, "math_icon"));
-        topics.put("Physics",
-                new Topic("Physics", longDescription, shortDescription, questions, "physic_icon"));
-        topics.put("Marvel Super Heroes",
-                new Topic("Marvel Super Heroes", longDescription, shortDescription, questions));
+    private void createTopics(String title, String longDescription, String shortDescription,
+                              List<Question> questions, String icon){
+        if(icon == null){
+            topics.put(title, new Topic(title, longDescription, shortDescription, questions));
+        } else {
+            topics.put(title, new Topic(title, longDescription, shortDescription, questions, icon));
+        }
     }
 
     // Get the list of the topics
@@ -62,15 +103,15 @@ public class TopicRepository {
 
 
     // Temporary variables & methods used to create topics
+    private String longDescription;
+    private String shortDescription;
+    private List<Question> questions;
+
     private void makeFakeQuestions() {
         makeLongD();
         makeShortD();
         makeQuestions();
     }
-
-    private String longDescription;
-    private String shortDescription;
-    private List<Question> questions;
 
     private void makeLongD(){
         longDescription =

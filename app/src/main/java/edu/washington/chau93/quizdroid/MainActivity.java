@@ -1,12 +1,19 @@
 package edu.washington.chau93.quizdroid;
 
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.preference.PreferenceFragment;
+import android.media.audiofx.BassBoost;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +22,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +37,7 @@ import edu.washington.chau93.quizdroid.repositories.TopicRepository;
 
 public class MainActivity extends ActionBarActivity {
     private final String TAG = "Quiz App";
-    private AlarmManager alarmMrg;
+    private AlarmManager alarmMgr;
     private PendingIntent pendingIntent;
 
     @Override
@@ -36,18 +46,24 @@ public class MainActivity extends ActionBarActivity {
         Log.d(TAG, "on create");
         setContentView(R.layout.activity_main);
 
-        alarmMrg = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmMgr = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        startScheduledUpdate();
+        if(QuizApp.getQuizApp() == null) startScheduledUpdate();
 
         initQuizApp();
 
         updateView();
+
+        checkAirplaneMode();
+
+
     }
 
     protected void initQuizApp(){
         QuizApp.initQuizApp();
+        QuizApp.createTopicRepo(getString(R.string.uri_path), getAssets());
     }
+
 
     private void updateView(){
         TopicRepository topicRepo = QuizApp.getTopicRepo();
@@ -87,26 +103,48 @@ public class MainActivity extends ActionBarActivity {
         });
     }
 
+    private void checkAirplaneMode() {
+        if(QuizApp.isAirplaneModeOn(this)) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Update cannot proceed unless you turn airplane mode off." +
+                    "Would you like to turn airplane mode off?")
+                    .setTitle("Quiz App Updater")
+                    .setCancelable(false);
+            builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    startActivity(new Intent(Settings.ACTION_AIRPLANE_MODE_SETTINGS));
+                }
+            });
+            builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            });
 
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }
+    }
+
+    private PendingIntent dataChecker;
     private void startScheduledUpdate(){
         Log.d(TAG, "Scheduling updates.");
+
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 
-        String url = sharedPref.getString("quiz_url", String.valueOf(R.string.default_quiz_url));
+        String url = sharedPref.getString("quiz_url", getString(R.string.default_quiz_url));
         int interval = Integer.parseInt(sharedPref.getString("download_interval", "30"));
         long time = interval * 60 * 1000;
 
-        Intent intent = new Intent(this, Updater.class);
-        intent.putExtra("quiz_url", url);
-        pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+        Intent updateIntent = new Intent(this, Updater.class);
+        updateIntent.putExtra("quiz_url", url);
 
-        alarmMrg.setInexactRepeating(
-                AlarmManager.ELAPSED_REALTIME_WAKEUP,
-                0, time,
-                pendingIntent
-        );
+        pendingIntent = PendingIntent.getBroadcast(this, 0, updateIntent, 0);
+
+        alarmMgr.setRepeating(AlarmManager.ELAPSED_REALTIME, 0, time, pendingIntent);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -123,9 +161,14 @@ public class MainActivity extends ActionBarActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
+        switch (id){
+            case R.id.action_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                break;
+
+            case R.id.action_refresh:
+                updateView();
+                break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -136,7 +179,15 @@ public class MainActivity extends ActionBarActivity {
         super.onDestroy();
 
         // Cnacel the update checks if user closes app.
-        if(alarmMrg != null) alarmMrg.cancel(pendingIntent);
+        if(alarmMgr != null) {
+            alarmMgr.cancel(pendingIntent);
+            alarmMgr.cancel(dataChecker);
+        }
         if(pendingIntent != null) pendingIntent.cancel();
+        if(dataChecker != null) dataChecker.cancel();
+
+
+        Log.d(TAG, "Good bye!");
     }
+
 }

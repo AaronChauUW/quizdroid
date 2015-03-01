@@ -11,6 +11,7 @@
     <string name="title_activity_quiz">QuizActivity</string>
     <string name="title_activity_preference">Preferences</string>
     <string name="title_activity_settings">SettingsActivity</string>
-    <string name="default_quiz_url">http://tednewardsandbox.site44.com/questions.json</string>
+    <string name="default_quiz_url" translatable="false">http://tednewardsandbox.site44.com/questions.json</string>
+    <string name="uri_path" translatable="false">file:///storage/emulated/0/Android/data/edu.washington.chau93.quizdroid/files/data/data/edu.washington.chau93.quizdroid/</string>
 
 </resources>
